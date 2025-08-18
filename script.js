@@ -5,53 +5,66 @@ const searchBox = document.getElementById("search-box");
 const searchResult = document.getElementById("search-result");
 const showBtn = document.getElementById("show-more-btn");
 
+const imagePopup = document.getElementById("image-popup");
+const popupImg = document.getElementById("popup-img");
+const popupDownload = document.getElementById("popup-download");
+
 let keyword = "";
 let page = 1;
-let typingTimer; // typing delay ka timer
+let typingTimer;
 
-async function searchImage(){
-    if (!keyword) return; // agar empty hai to kuch mat karo
+async function searchImage() {
+    if (!keyword) return;
 
     const url = `https://api.unsplash.com/search/photos?page=${page}&query=${keyword}&client_id=${accessKey}&per_page=12`;
-
     const response = await fetch(url);
     const data = await response.json();
 
-    // Pehle results clear karo agar page = 1
     if (page === 1) searchResult.innerHTML = "";
 
     const results = data.results;
-    results.map((result)=>{
+    results.map((result) => {
         const image = document.createElement("img");
         image.src = result.urls.small;
-        const imageLink = document.createElement("a");
-        imageLink.href = result.links.html;
-        imageLink.target = "_blank";
+        image.style.cursor = "pointer";
+        image.addEventListener("click", () => openImagePopup(result.urls.full));
 
-        imageLink.appendChild(image);
-        searchResult.appendChild(imageLink);
+        searchResult.appendChild(image);
     });
+
     showBtn.style.display = "block";
 }
 
-// Search button wale event ki zarurat nahi, lekin agar rakhna chaho to rakh sakte ho
-searchForm.addEventListener("submit", (e)=>{
+function openImagePopup(fullImageUrl) {
+    imagePopup.style.display = "flex"; // show popup
+    popupImg.src = fullImageUrl;
+    popupDownload.href = fullImageUrl; // set download link
+}
+
+// Close popup when clicking outside the image
+imagePopup.addEventListener("click", (e) => {
+    if (e.target === imagePopup) {
+        imagePopup.style.display = "none";
+    }
+});
+
+searchForm.addEventListener("submit", (e) => {
     e.preventDefault();
+    keyword = searchBox.value.trim();
     page = 1;
     searchImage();
 });
 
-// Live search: input pe call kare
-searchBox.addEventListener("input", ()=>{
+searchBox.addEventListener("input", () => {
     clearTimeout(typingTimer);
-    typingTimer = setTimeout(()=>{
+    typingTimer = setTimeout(() => {
         keyword = searchBox.value.trim();
         page = 1;
         searchImage();
-    }, 500); // 500ms delay to avoid too many API calls
+    }, 500);
 });
 
-showBtn.addEventListener("click", ()=>{
+showBtn.addEventListener("click", () => {
     page++;
     searchImage();
 });
