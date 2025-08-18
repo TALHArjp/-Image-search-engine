@@ -36,9 +36,25 @@ async function searchImage() {
 }
 
 function openImagePopup(fullImageUrl) {
-    imagePopup.style.display = "flex"; // show popup
+    imagePopup.style.display = "flex"; 
     popupImg.src = fullImageUrl;
-    popupDownload.href = fullImageUrl; // set download link
+
+    // Download button - direct download
+    popupDownload.onclick = async (e) => {
+        e.preventDefault();
+        const response = await fetch(fullImageUrl);
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "image.jpg"; // file name
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        URL.revokeObjectURL(url);
+    };
 }
 
 // Close popup when clicking outside the image
