@@ -83,9 +83,11 @@ async function fetchRelatedImages(keyword) {
         img.style.cursor = "pointer";
 
         img.addEventListener("click", () => {
-            popupImg.src = result.urls.full; // replace main image
-            setDownload(result.urls.full);   // ✅ update download
-            fetchRelatedImages(keyword);     // reload relatives (optional)
+            setTimeout(() => {
+                popupImg.src = result.urls.full; // replace main image
+                setDownload(result.urls.full);   // ✅ update download
+                fetchRelatedImages(keyword);     // reload relatives (optional)
+            }, 1000); // 1 second delay
         });
 
         relatedContainer.appendChild(img);
@@ -160,3 +162,4 @@ document.querySelectorAll(".theme-btn").forEach(btn => {
     themeOptions.classList.remove("active"); // close after select
   });
 });
+
