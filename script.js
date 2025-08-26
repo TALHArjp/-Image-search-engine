@@ -27,7 +27,7 @@ async function searchImage() {
         const image = document.createElement("img");
         image.src = result.urls.small;
         image.style.cursor = "pointer";
-        image.addEventListener("click", () => openImagePopup(result.urls.full));
+        image.addEventListener("click", () => openImagePopup(result.urls.full, keyword));
 
         searchResult.appendChild(image);
     });
@@ -35,11 +35,8 @@ async function searchImage() {
     showBtn.style.display = "block";
 }
 
-function openImagePopup(fullImageUrl) {
-    imagePopup.style.display = "flex"; 
-    popupImg.src = fullImageUrl;
-
-    // Download button - direct download
+// ✅ helper function for download
+function setDownload(fullImageUrl) {
     popupDownload.onclick = async (e) => {
         e.preventDefault();
         const response = await fetch(fullImageUrl);
@@ -48,7 +45,7 @@ function openImagePopup(fullImageUrl) {
 
         const a = document.createElement("a");
         a.href = url;
-        a.download = "image.jpg"; // file name
+        a.download = "image.jpg";
         document.body.appendChild(a);
         a.click();
         a.remove();
@@ -56,6 +53,45 @@ function openImagePopup(fullImageUrl) {
         URL.revokeObjectURL(url);
     };
 }
+
+function openImagePopup(fullImageUrl, keyword) {
+    imagePopup.style.display = "flex"; 
+    popupImg.src = fullImageUrl;
+
+    // ✅ update download
+    setDownload(fullImageUrl);
+
+    // Fetch related images
+    fetchRelatedImages(keyword);
+}
+
+async function fetchRelatedImages(keyword) {
+    const relatedContainer = document.getElementById("related-images");
+    relatedContainer.innerHTML = "<p style='color:#555;'>Loading...</p>";
+
+    const url = `https://api.unsplash.com/search/photos?page=1&query=${keyword}&client_id=${accessKey}&per_page=8`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    relatedContainer.innerHTML = ""; // clear loading text
+
+    data.results.forEach((result) => {
+        const img = document.createElement("img");
+        img.src = result.urls.thumb;
+        img.style.width = "100%";
+        img.style.borderRadius = "5px";
+        img.style.cursor = "pointer";
+
+        img.addEventListener("click", () => {
+            popupImg.src = result.urls.full; // replace main image
+            setDownload(result.urls.full);   // ✅ update download
+            fetchRelatedImages(keyword);     // reload relatives (optional)
+        });
+
+        relatedContainer.appendChild(img);
+    });
+}
+
 
 // Close popup when clicking outside the image
 imagePopup.addEventListener("click", (e) => {
@@ -83,4 +119,44 @@ searchBox.addEventListener("input", () => {
 showBtn.addEventListener("click", () => {
     page++;
     searchImage();
+});
+
+// Tag functionality
+document.querySelectorAll(".tag-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+        document.querySelectorAll(".tag-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+
+        keyword = btn.getAttribute("data-tag");
+        searchBox.value = keyword; // update search box
+        page = 1;
+        searchImage();
+    });
+});
+
+
+
+
+
+
+
+
+
+
+const themeIcon = document.getElementById("theme-icon");
+const themeOptions = document.getElementById("theme-options");
+
+// toggle theme layer
+themeIcon.addEventListener("click", () => {
+  themeOptions.classList.toggle("active");
+});
+
+// apply selected theme
+document.querySelectorAll(".theme-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.body.className = ""; // reset
+    const theme = btn.getAttribute("data-theme");
+    document.body.classList.add(`${theme}-theme`);
+    themeOptions.classList.remove("active"); // close after select
+  });
 });
