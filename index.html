@@ -7,25 +7,55 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Theme Toggle -->
+    <div class="theme-toggle">
+    <div id="theme-icon">🎨</div>
+    <div id="theme-options">
+        <div class="theme-btn" data-theme="light">🌞 Light</div>
+        <div class="theme-btn" data-theme="dark">🌙 Dark</div>
+        <div class="theme-btn" data-theme="blue">💧 Blue</div>
+        <div class="theme-btn" data-theme="green">🌿 Green</div>
+    </div>
+    </div>
 
     <h1>Image Search Engine</h1>
 
     <form id="search-form">
         <input type="text" id="search-box" placeholder="Search anything...">
-        <button type="submit">Search</button>
+        <!-- <button type="submit">Search</button> -->
     </form>
-
+    <div id="tags-container">
+        <button class="tag-btn" data-tag="fashion">Fashion</button>
+        <button class="tag-btn" data-tag="sports">Sports</button>
+        <button class="tag-btn" data-tag="fitness">Fitness</button>
+        <button class="tag-btn" data-tag="gym">Gym</button>
+        <button class="tag-btn" data-tag="travel">Travel</button>
+        <button class="tag-btn" data-tag="nature">Nature</button>
+        <button class="tag-btn" data-tag="walpapers">Walpapers</button>
+        <button class="tag-btn" data-tag="food">Food</button>
+        <button class="tag-btn" data-tag="Cars">Cars</button>
+    </div>
     <div id="search-result"></div>
     <button id="show-more-btn">Show more</button>
 
     <!-- Simple Image Popup -->
     <div id="image-popup" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:999;">
-        <div style="position:relative; text-align:center;">
-            <img id="popup-img" src="" style="max-width:90vw; max-height:80vh; border-radius:8px;">
-            <br>
-            <a id="popup-download" href="#" download style="margin-top:10px; display:inline-block; padding:8px 15px; background:#00c3ff; color:white; text-decoration:none; border-radius:5px;">Download</a>
+        <div style="position:relative; display:flex; gap:20px; background:#fff; padding:20px; border-radius:10px; max-width:90vw; max-height:80vh; overflow:hidden;">
+            
+            <!-- Main Image -->
+            <div style="flex:3; text-align:center;">
+                <img id="popup-img" src="" style="max-width:100%; max-height:70vh; border-radius:8px;">
+                <br>
+                <a id="popup-download" href="#" download style="margin-top:10px; display:inline-block; padding:8px 15px; background:#00c3ff; color:white; text-decoration:none; border-radius:5px;">Download</a>
+            </div>
+
+            <!-- Related Images -->
+            <div id="related-images" style="flex:1; overflow-y:auto; max-height:70vh; display:flex; flex-direction:column; gap:10px;">
+                <!-- Related images will be injected here -->
+            </div>
+
         </div>
-    </div>
+     </div>
 
     <footer class="site-footer">
         <p>&copy; 2025 Made by <span>Talha</span>. All rights reserved.</p>
