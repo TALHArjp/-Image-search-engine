@@ -16,7 +16,7 @@ let typingTimer;
 async function searchImage() {
     if (!keyword) return;
 
-    const url = `https://api.unsplash.com/search/photos?page=${page}&query=${keyword}&client_id=${accessKey}&per_page=21`;
+    const url = `https://api.unsplash.com/search/photos?page=${page}&query=${keyword}&client_id=${accessKey}&per_page=30`;
     const response = await fetch(url);
     const data = await response.json();
 
@@ -102,7 +102,7 @@ async function fetchRelatedImages(keyword) {
     // clear old related images but keep template
     relatedContainer.querySelectorAll("img:not(:first-child)").forEach(el => el.remove());
 
-    const url = `https://api.unsplash.com/search/photos?page=1&query=${keyword}&client_id=${accessKey}&per_page=20`;
+    const url = `https://api.unsplash.com/search/photos?page=1&query=${keyword}&client_id=${accessKey}&per_page=15`;
     const response = await fetch(url);
     const data = await response.json(); 
 
@@ -204,3 +204,4 @@ document.querySelectorAll(".theme-btn").forEach(btn => {
     themeOptions.classList.remove("active"); // close after select
   });
 });
+
