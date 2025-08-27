@@ -28,7 +28,7 @@ async function searchImage() {
     const results = data.results;
 
     if (results.length === 0) {
-        showBtn.style.display = "none"; // ❌ kuch nahi mila to hide
+        showBtn.style.display = "none"; 
         return;
     }
 
@@ -204,4 +204,5 @@ document.querySelectorAll(".theme-btn").forEach(btn => {
     themeOptions.classList.remove("active"); // close after select
   });
 });
+
 
