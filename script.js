@@ -12,16 +12,17 @@ const popupDownload = document.getElementById("popup-download");
 let keyword = "";
 let page = 1;
 let typingTimer;
+let selectedTags = []; 
+let lastSelectedTag = null; 
 
 async function searchImage() {
     if (!keyword) return;
 
-    const url = `https://api.unsplash.com/search/photos?page=${page}&query=${keyword}&client_id=${accessKey}&per_page=30`;
+    const url = `https://api.unsplash.com/search/photos?page=${page}&query=${keyword}&client_id=${accessKey}&per_page=9`;
     const response = await fetch(url);
     const data = await response.json();
 
     if (page === 1) {
-        // Clear old results but keep template
         searchResult.querySelectorAll("img:not(:first-child)").forEach(el => el.remove());
     }
 
@@ -31,18 +32,7 @@ async function searchImage() {
         showBtn.style.display = "none"; 
         return;
     }
-
-
-
-    // const results = data.results;
-    // results.map((result) => {
-    //     const image = document.createElement("img");
-    //     image.src = result.urls.small;
-    //     image.style.cursor = "pointer";
-    //     image.addEventListener("click", () => openImagePopup(result.urls.full, keyword));
-    //     searchResult.appendChild(image);
-    // });
-
+    showBtn.style.display = "block"; 
 
     results.forEach((result) => {
         let template = document.querySelector("#search-result img");
@@ -51,22 +41,15 @@ async function searchImage() {
         let clone = template.cloneNode(true);
         clone.src = result.urls.small;
         clone.style.cursor = "pointer";
-        clone.style.display = "block";  // ✅ ab visible ho
+        clone.style.display = "block";
 
         clone.addEventListener("click", () => openImagePopup(result.urls.full, keyword));
 
         searchResult.appendChild(clone);
     });
-
-    // ✅ agar images aaye hain to button dikhana hoga
-    showBtn.style.display = "block";
 }
 
-
-
-
-
-// ✅ helper function for download
+//  helper function for download
 function setDownload(fullImageUrl) {
     popupDownload.onclick = async (e) => {
         e.preventDefault();
@@ -89,40 +72,19 @@ function openImagePopup(fullImageUrl, keyword) {
     imagePopup.style.display = "flex"; 
     popupImg.src = fullImageUrl;
 
-    // ✅ update download
     setDownload(fullImageUrl);
 
-    // Fetch related images
     fetchRelatedImages(keyword);
 }
 
 async function fetchRelatedImages(keyword) {
     const relatedContainer = document.getElementById("related-images");
 
-    // clear old related images but keep template
     relatedContainer.querySelectorAll("img:not(:first-child)").forEach(el => el.remove());
 
-    const url = `https://api.unsplash.com/search/photos?page=1&query=${keyword}&client_id=${accessKey}&per_page=15`;
+    const url = `https://api.unsplash.com/search/photos?page=1&query=${keyword}&client_id=${accessKey}&per_page=6`;
     const response = await fetch(url);
     const data = await response.json(); 
-
-
-    // data.results.forEach((result) => {
-    //     const img = document.createElement("img");
-    //     img.src = result.urls.thumb;
-    //     img.style.width = "100%";
-    //     img.style.borderRadius = "5px";
-    //     img.style.cursor = "pointer";
-
-    //     img.addEventListener("click", () => {
-    //         popupImg.src = result.urls.full; 
-    //         setDownload(result.urls.full);   
-    //         fetchRelatedImages(keyword);     
-    //     });
-
-    //     relatedContainer.appendChild(img);
-    // });
-
 
     const templateRelated = document.querySelector("#related-images img");
     data.results.forEach((result) => {
@@ -131,8 +93,6 @@ async function fetchRelatedImages(keyword) {
         let clone = templateRelated.cloneNode(true);
         clone.src = result.urls.thumb;
         clone.style.cursor = "pointer";
-
-        // 🔥 yahan bhi add karo:
         clone.style.display = "block";
 
         clone.addEventListener("click", () => {
@@ -145,8 +105,7 @@ async function fetchRelatedImages(keyword) {
     });
 }
 
-
-// Close popup when clicking outside the image
+// Close popup
 imagePopup.addEventListener("click", (e) => {
     if (e.target === imagePopup) {
         imagePopup.style.display = "none";
@@ -170,39 +129,117 @@ searchBox.addEventListener("input", () => {
 });
 
 showBtn.addEventListener("click", () => {
-    page++;
-    searchImage();
+    if (lastSelectedTag) {
+        page++;
+        fetchTagImages(lastSelectedTag, page);
+    } else {
+        page++;
+        searchImage();
+    }
 });
 
-// Tag functionality
 document.querySelectorAll(".tag-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-        document.querySelectorAll(".tag-btn").forEach(b => b.classList.remove("active"));
+    btn.addEventListener("click", async () => {
+        const tag = btn.getAttribute("data-tag");
+
+        if (selectedTags.includes(tag)) {
+            selectedTags = selectedTags.filter(t => t !== tag);
+            btn.classList.remove("active");
+
+            searchResult.querySelectorAll(`[data-tag="${tag}"]`).forEach(el => el.remove());
+
+            searchBox.value = selectedTags.join(" + ");
+            return;
+        }
+        selectedTags.push(tag);
+        lastSelectedTag = tag; //update last selected
         btn.classList.add("active");
 
-        keyword = btn.getAttribute("data-tag");
-        searchBox.value = keyword; // update search box
-        page = 1;
-        searchImage();
+        searchBox.value = selectedTags.join(" + ");
+        await fetchTagImages(tag, 0);
+
+        const lastImage = searchResult.querySelector("img:last-of-type");
+        if (lastImage) {
+            lastImage.scrollIntoView({
+                behavior: "smooth",
+                block: "end"
+            });
+        }
     });
 });
 
+async function fetchTagImages(tag, pageNum = 1) {
+    const url = `https://api.unsplash.com/search/photos?page=${pageNum}&query=${tag}&client_id=${accessKey}&per_page=9`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    const results = data.results;
+
+    results.forEach((result) => {
+        let template = document.querySelector("#search-result img");
+        if (!template) return;
+
+        let clone = template.cloneNode(true);
+        clone.src = result.urls.small;
+        clone.style.cursor = "pointer";
+        clone.style.display = "block";
+        clone.setAttribute("data-tag", tag); 
+        clone.addEventListener("click", () => openImagePopup(result.urls.full, tag));
+        searchResult.appendChild(clone);
+    });
+
+    showBtn.style.display = "block";
+}
+
+// Theme switcher
 const themeIcon = document.getElementById("theme-icon");
 const themeOptions = document.getElementById("theme-options");
 
-// toggle theme layer
 themeIcon.addEventListener("click", () => {
   themeOptions.classList.toggle("active");
 });
 
-// apply selected theme
 document.querySelectorAll(".theme-btn").forEach(btn => {
   btn.addEventListener("click", () => {
-    document.body.className = ""; // reset
+    document.body.className = ""; 
     const theme = btn.getAttribute("data-theme");
     document.body.classList.add(`${theme}-theme`);
-    themeOptions.classList.remove("active"); // close after select
+    themeOptions.classList.remove("active"); 
   });
 });
 
 
+// load function 
+document.addEventListener("DOMContentLoaded", async () => {
+    const tagButtons = document.querySelectorAll(".tag-btn");
+
+    for (let btn of tagButtons) {
+        const tag = btn.getAttribute("data-tag");
+
+        // Unsplash API call per tag (only 1 image)
+        const url = `https://api.unsplash.com/search/photos?page=1&query=${tag}&client_id=${accessKey}&per_page=1`;
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data.results.length > 0) {
+            const result = data.results[0];
+
+            let template = document.querySelector("#search-result img");
+            if (!template) continue;
+
+            let clone = template.cloneNode(true);
+            clone.src = result.urls.small;
+            clone.style.cursor = "pointer";
+            clone.style.display = "block";
+            clone.setAttribute("data-tag", tag);
+
+            clone.addEventListener("click", () => openImagePopup(result.urls.full, tag));
+
+            searchResult.appendChild(clone);
+        }
+    }
+
+    if (searchResult.querySelectorAll("img").length > 0) {
+        showBtn.style.display = "block";
+    }
+});
